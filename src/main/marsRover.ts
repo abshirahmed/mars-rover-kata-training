@@ -1,5 +1,7 @@
 import MarsPlateau from './marsPlateau';
-import { Move, RotateLeft, RotateRight } from './instructions';
+import { RotateLeft } from './commands/rotateLeft';
+import { RotateRight } from './commands/rotateRight';
+import { MoveForward } from './commands/moveForward';
 
 export default class MarsRover {
     constructor(private orientation = 'N', private coordinates = {
@@ -8,6 +10,21 @@ export default class MarsRover {
     }, private marsPlateau = new MarsPlateau()) {
     }
 
+    private getCommands(instructions: string) {
+        return instructions.split('')
+            .map(instruction => {
+                switch (instruction) {
+                    case 'L':
+                        return new RotateLeft(this);
+                    case 'R':
+                        return new RotateRight(this);
+                    case 'M':
+                        return new MoveForward(this);
+                    default:
+                        throw new Error('Unknown Command')
+                }
+            });
+    }
 
     rotateLeft() {
         switch (this.orientation) {
@@ -51,31 +68,6 @@ export default class MarsRover {
         return this;
     }
 
-    executeCommands(instructions: string) {
-
-        const commands = this.getCommands(instructions);
-        commands.forEach(command => command.execute());
-
-        return `${this.coordinates.x}:${this.coordinates.y}:${this.orientation}`;
-    }
-
-    private getCommands(instructions: string) {
-        return instructions.split('')
-            .map(instruction => {
-                switch (instruction) {
-                    case 'L':
-                        return new RotateLeft(this);
-                    case 'R':
-                        return new RotateRight(this);
-                    case 'M':
-                        return new Move(this);
-                    default:
-                        throw new Error('Unknown Command')
-                }
-            });
-
-    }
-
     moveForward() {
         if (this.orientation === 'N') {
             if (this.coordinates.y === this.marsPlateau.maxHeight - 1) {
@@ -107,5 +99,13 @@ export default class MarsRover {
                 this.coordinates.x--;
             }
         }
+    }
+
+    executeInstructions(instructions: string) {
+
+        const commands = this.getCommands(instructions);
+        commands.forEach(command => command.execute());
+
+        return `${this.coordinates.x}:${this.coordinates.y}:${this.orientation}`;
     }
 }
