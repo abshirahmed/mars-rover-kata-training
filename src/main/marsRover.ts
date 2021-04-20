@@ -1,4 +1,5 @@
 import MarsPlateau from './marsPlateau';
+import { Move, RotateLeft, RotateRight } from './instructions';
 
 export default class MarsRover {
     constructor(private orientation = 'N', private coordinates = {
@@ -7,7 +8,8 @@ export default class MarsRover {
     }, private marsPlateau = new MarsPlateau()) {
     }
 
-    private rotateLeft() {
+
+    rotateLeft() {
         switch (this.orientation) {
             case 'N':
                 this.orientation = 'W';
@@ -28,7 +30,7 @@ export default class MarsRover {
         return this;
     }
 
-    private rotateRight() {
+    rotateRight() {
         switch (this.orientation) {
             case 'N':
                 this.orientation = 'E';
@@ -49,29 +51,32 @@ export default class MarsRover {
         return this;
     }
 
-    move(instructions: string) {
-        const instructionsArray = instructions.split('')
+    executeCommands(instructions: string) {
 
-        instructionsArray.forEach(instruction => {
-            switch (instruction) {
-                case 'L':
-                    this.rotateLeft();
-                    break
-                case 'R':
-                    this.rotateRight();
-                    break
-                case 'M':
-                    this.moveForward();
-                    break
-                default:
-                    break;
-            }
-        })
+        const commands = this.getCommands(instructions);
+        commands.forEach(command => command.execute());
 
         return `${this.coordinates.x}:${this.coordinates.y}:${this.orientation}`;
     }
 
-    private moveForward() {
+    private getCommands(instructions: string) {
+        return instructions.split('')
+            .map(instruction => {
+                switch (instruction) {
+                    case 'L':
+                        return new RotateLeft(this);
+                    case 'R':
+                        return new RotateRight(this);
+                    case 'M':
+                        return new Move(this);
+                    default:
+                        throw new Error('Unknown Command')
+                }
+            });
+
+    }
+
+    moveForward() {
         if (this.orientation === 'N') {
             if (this.coordinates.y === this.marsPlateau.maxHeight - 1) {
                 this.coordinates.y = 0;
